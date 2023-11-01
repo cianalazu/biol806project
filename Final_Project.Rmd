@@ -1,0 +1,177 @@
+---
+title: "Class_Project"
+output: html_document
+date: "2023-10-30"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(ggplot2)
+library(tidyverse)
+library(ggpubr)
+```
+
+```{r}
+ggplot(data = Plate_Count,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Location))+
+  geom_point() +
+  coord_flip()
+```
+
+Sort by site and graph each individual site then ggarrange
+
+
+Made a subset of the data based on location
+```{r}
+
+Mill_Pond <- Plate_Count %>% 
+  filter(Location == "mill_pond")
+
+Woodman_Rd <- Plate_Count %>% 
+  filter(Location == "woodman_rd")
+
+Durham_Reservoir <- Plate_Count %>% 
+  filter(Location == "durham_reservoir")
+
+Laroche_Pond <- Plate_Count %>% 
+  filter(Location == "laroche_pond")
+
+Thompson_Farm <- Plate_Count %>% 
+  filter(Location == "thompson_farm")
+
+Upper_Mill_Pond <- Plate_Count %>% 
+  filter(Location == "upper_mill_pond")
+```
+
+
+
+Making a plot of each location:
+
+```{r}
+Microbe1_Mill_Pond_Figure <- ggplot(data = Mill_Pond,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe1_Woodman_Rd_Figure <- ggplot(data = Woodman_Rd,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe1_Durham_Reservoir_Figure <- ggplot(data = Durham_Reservoir,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe1_Laroche_Pond_Figure <- ggplot(data = Laroche_Pond,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe1_Thompson_Farm_Figure <- ggplot(data = Thompson_Farm,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe1_Upper_Mill_Pond_Figure <- ggplot(data = Upper_Mill_Pond,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+# ggarrange all the plots:
+
+Microbe1 <- ggarrange(Microbe1_Mill_Pond_Figure, Microbe1_Woodman_Rd_Figure, Microbe1_Durham_Reservoir_Figure, Microbe1_Laroche_Pond_Figure, Microbe1_Thompson_Farm_Figure, Microbe1_Upper_Mill_Pond_Figure, common.legend = TRUE) # need to add title (location) somehow
+
+
+
+```
+
+
+How do we want to handle the second, third, and fourth microbe color??
+
+
+```{r}
+Microbe2_Mill_Pond_Figure <- ggplot(data = Mill_Pond,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe2_Woodman_Rd_Figure <- ggplot(data = Woodman_Rd,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe2_Durham_Reservoir_Figure <- ggplot(data = Durham_Reservoir,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe2_Laroche_Pond_Figure <- ggplot(data = Laroche_Pond,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe2_Thompson_Farm_Figure <- ggplot(data = Thompson_Farm,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe2_Upper_Mill_Pond_Figure <- ggplot(data = Upper_Mill_Pond,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+# ggarrange all the plots:
+
+Microbe2 <- ggarrange(Microbe2_Mill_Pond_Figure, Microbe2_Woodman_Rd_Figure, Microbe2_Durham_Reservoir_Figure, Microbe2_Laroche_Pond_Figure, Microbe2_Thompson_Farm_Figure, Microbe2_Upper_Mill_Pond_Figure, common.legend = TRUE) # need to add title (location) somehow
+
+```
+
+
+
+```{r}
+ggplot(data = Mill_Pond, 
+       aes(x = sort(Date), y = Mold_Present)) +
+  geom_bar()
+
+```
+
+
+
+
+Tried to make a for loop that made a graph for each location but didn't work for some reason:
+```{r}
+Plate_Count <- Plate_Count %>% 
+  drop_na()
+
+Plate_Count_Location <- unique(Plate_Count$Location)
+
+for(Location in Plate_Count_Location) {
+  subset_data <- Plate_Count [Plate_Count$Location == Location, ] 
+  ggplot(data = subset_data,
+       aes(x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point()
+}
+ 
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
