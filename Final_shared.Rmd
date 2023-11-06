@@ -1,0 +1,346 @@
+---
+title: "Untitled"
+author: "Alyssa"
+date: "2023-11-02"
+output: html_document
+---
+
+```{r setup, echo=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(ggpubr)
+library(lubridate)
+
+library(cowplot)
+Plate_Count <- read_csv("finalplatecount.csv")
+
+Plate_Count$Date[79] = "7/12/22"
+```
+
+```{r}
+ggplot(data = Plate_Count,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Location))+
+  geom_point() +
+ theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Sort by site and graph each individual site then ggarrange
+
+
+Made a subset of the data based on location
+```{r}
+
+Mill_Pond <- Plate_Count %>% 
+  filter(Location == "mill_pond")
+
+Woodman_Rd <- Plate_Count %>% 
+  filter(Location == "woodman_rd")
+
+Durham_Reservoir <- Plate_Count %>% 
+  filter(Location == "durham_reservoir")
+
+Laroche_Pond <- Plate_Count %>% 
+  filter(Location == "laroche_pond")
+
+Thompson_Farm <- Plate_Count %>% 
+  filter(Location == "thompson_farm")
+
+Upper_Mill_Pond <- Plate_Count %>% 
+  filter(Location == "upper_mill_pond")
+```
+
+
+
+Making a plot of each location:
+
+```{r}
+Microbe1_Mill_Pond_Figure <- ggplot(data = Mill_Pond,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe1_Woodman_Rd_Figure <- ggplot(data = Woodman_Rd,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe1_Durham_Reservoir_Figure <- ggplot(data = Durham_Reservoir,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe1_Laroche_Pond_Figure <- ggplot(data = Laroche_Pond,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe1_Thompson_Farm_Figure <- ggplot(data = Thompson_Farm,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe1_Upper_Mill_Pond_Figure <- ggplot(data = Upper_Mill_Pond,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+# ggarrange all the plots:
+
+Microbe1 <- ggarrange(Microbe1_Mill_Pond_Figure, Microbe1_Woodman_Rd_Figure, Microbe1_Durham_Reservoir_Figure, Microbe1_Laroche_Pond_Figure, Microbe1_Thompson_Farm_Figure, Microbe1_Upper_Mill_Pond_Figure, common.legend = TRUE) # need to add title (location) somehow
+
+```
+
+```{r alyssa edits fixing axes}
+Microbe1_Mill_Pond_Figure <- ggplot(data = Mill_Pond,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+    geom_point() +
+    theme_classic() +
+    labs(title = "Mill Pond", x = "Date", y = "Percent Coverage") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1), 
+          plot.title = element_text(size = 10, hjust = 0.5)) +
+    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25))
+
+
+Microbe1_Woodman_Rd_Figure <- ggplot(data = Woodman_Rd,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+    geom_point() +
+    theme_classic() +
+    labs(title = "Wodoman Rd", x = "Date", y = "Percent Coverage") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),  
+          plot.title = element_text(size = 10, hjust = 0.5)) +
+    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25))
+
+
+Microbe1_Durham_Reservoir_Figure <- ggplot(data = Durham_Reservoir,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+    geom_point() +
+    theme_classic() +
+    labs(title = "Durham Reservoir", x = "Date", y = "Percent Coverage") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),  
+          plot.title = element_text(size = 10, hjust = 0.5)) +
+    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25))
+
+
+Microbe1_Laroche_Pond_Figure <- ggplot(data = Laroche_Pond,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+    geom_point() +
+    theme_classic() +
+    labs(title = "Laroche Pond", x = "Date", y = "Percent Coverage") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),  
+          plot.title = element_text(size = 10, hjust = 0.5)) +
+    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25))
+
+
+Microbe1_Thompson_Farm_Figure <- ggplot(data = Thompson_Farm,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+    geom_point() +
+    theme_classic() +
+    labs(title = "Thompson Farm", x = "Date", y = "Percent Coverage") +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1),  
+          plot.title = element_text(size = 10, hjust = 0.5)) +
+    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25))
+
+Microbe1_Upper_Mill_Pond_Figure <- ggplot(data = Upper_Mill_Pond,
+       aes( x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+    geom_point() +
+    theme_classic() +
+    labs(title = "Upper Mill Pond", x = "Date", y = "Percent Coverage") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1),  
+          plot.title = element_text(size = 10, hjust = 0.5)) +
+    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25))
+
+# ggarrange all the plots:
+
+Microbe1 <- ggarrange(Microbe1_Mill_Pond_Figure, Microbe1_Woodman_Rd_Figure, Microbe1_Durham_Reservoir_Figure, Microbe1_Laroche_Pond_Figure, Microbe1_Thompson_Farm_Figure, Microbe1_Upper_Mill_Pond_Figure, common.legend = TRUE) # need to add title (location) somehow
+
+```
+
+```{r custom function for making graphs, fig.height=5, fig.width=10}
+# new data frame for custom function
+make_plot_df <- Plate_Count %>% 
+  drop_na(Side) %>% 
+  filter(Side != "na") %>% 
+  mutate(real_dates = mdy(Date))
+
+# making Location into a factor 
+make_plot_df$Location <- as.factor(make_plot_df$Location)
+
+
+make_plot <- function(location = NULL) { #open custom function for making plots ("make_plot")
+  
+    if (!is.null(location)) {
+      temp <- make_plot_df %>% 
+        filter(Location == location)
+    }
+    else {
+      temp <- make_plot_df
+    }
+  
+    temp %>% 
+    ggplot(aes(x=real_dates, 
+               y = Main_Percent_Cover, 
+               fill = Main_Microbe_Color, 
+               color = Main_Microbe_Color)) +
+      geom_point(size=2.5) +
+      labs(title = location, 
+           x = "Month", 
+           y = "Percent Coverage") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 7),
+            plot.title = element_text(size = 10, hjust = 0.5)) +
+      scale_color_manual(values = c("dark_yellow" = "darkgoldenrod", 
+                                    "black" = "black", 
+                                    "yellow" = "gold", 
+                                    "orange" = "orange",
+                                    "light_yellow" = "khaki1", 
+                                    "pink" = "pink",
+                                    "gray" = "gray")) +
+      scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25)) +
+      scale_x_date(limits = c(as.Date("2022-01-01"), 
+                              as.Date("2022-12-31")), 
+                              date_labels = "%b", 
+                              date_breaks = "1 month") +
+      facet_wrap(vars(Side))
+} #close "make_plot"
+
+#function for taking away individual legends
+no_legend <- function(p) { 
+  return(p + theme(legend.position = "none"))
+} #close no_legend
+
+#making individual plots for locations
+plot1 <- make_plot("mill_pond") + labs(title = "Mill Pond") 
+plot2 <- make_plot("woodman_rd") + labs(title = "Woodman Rd")
+plot3 <- make_plot("durham_reservoir") + labs(title = "Durham Reservoir")
+plot4 <- make_plot("laroche_pond") + labs(title = "LaRoche Pond")
+plot5 <- make_plot("thompson_farm") + labs(title = "Thompson Farm")
+plot6 <- make_plot("upper_mill_pond") + labs(title = "Upper Mill Pond")
+
+#legend accounting for every single color
+plot_legend <- get_legend(make_plot() +
+      theme(legend.direction = "horizontal"))
+
+#taking individual plots and putting them into a grid, taking individual legends away
+m <- plot_grid(no_legend(plot1) , no_legend(plot2), no_legend(plot3), no_legend(plot4), no_legend(plot5), no_legend(plot6), ncol = 3)
+
+#adding an overall plot to the grid
+m <- plot_grid(m, plot_legend, ncol = 1, rel_heights = c(1, 0.15))
+
+m
+```
+
+```{r}
+make_plot_df %>% 
+    ggplot(aes(x=real_dates, 
+               y = Main_Percent_Cover, 
+               fill = Main_Microbe_Color, 
+               color = Main_Microbe_Color)) +
+      geom_point(size=2.5) +
+      labs(
+           x = "Month", 
+           y = "Percent Coverage") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 7),
+            plot.title = element_text(size = 10, hjust = 0.5)) +
+      scale_color_manual(values = c("dark_yellow" = "darkgoldenrod", 
+                                    "black" = "black", 
+                                    "yellow" = "yellow", 
+                                    "orange" = "orange",
+                                    "light_yellow" = "lightgoldenrod1", 
+                                    "pink" = "pink",
+                                    "gray" = "gray")) +
+      scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25)) +
+      scale_x_date(limits = c(as.Date("2022-01-01"), 
+                              as.Date("2022-12-31")), 
+                              date_labels = "%b", 
+                              date_breaks = "1 month") +
+      facet_wrap(vars(Side)) +
+      facet_wrap(vars(Location))
+```
+
+
+How do we want to handle the second, third, and fourth microbe color??
+
+
+```{r}
+Microbe2_Mill_Pond_Figure <- ggplot(data = Mill_Pond,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe2_Woodman_Rd_Figure <- ggplot(data = Woodman_Rd,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe2_Durham_Reservoir_Figure <- ggplot(data = Durham_Reservoir,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe2_Laroche_Pond_Figure <- ggplot(data = Laroche_Pond,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe2_Thompson_Farm_Figure <- ggplot(data = Thompson_Farm,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+
+Microbe2_Upper_Mill_Pond_Figure <- ggplot(data = Upper_Mill_Pond,
+       aes( x = sort(Date), y = Percent_Coverage_2, fill = Microbe_2_Color, color = Microbe_2_Color, shape = Side))+
+  geom_point() +
+  coord_flip()
+
+# ggarrange all the plots:
+
+Microbe2 <- ggarrange(Microbe2_Mill_Pond_Figure, Microbe2_Woodman_Rd_Figure, Microbe2_Durham_Reservoir_Figure, Microbe2_Laroche_Pond_Figure, Microbe2_Thompson_Farm_Figure, Microbe2_Upper_Mill_Pond_Figure, common.legend = TRUE) # need to add title (location) somehow
+
+```
+
+
+
+```{r}
+ggplot(data = Mill_Pond, 
+       aes(x = sort(Date), y = Mold_Present, color = Side)) +
+  geom_point()
+```
+
+
+
+
+Tried to make a for loop that made a graph for each location but didn't work for some reason:
+```{r ciana for loop attempt}
+Plate_Count <- Plate_Count %>% 
+  drop_na()
+
+Plate_Count_Location <- unique(Plate_Count$Location)
+
+for(Location in Plate_Count_Location) {
+  subset_data <- Plate_Count [Plate_Count$Location == Location, ] 
+  ggplot(data = subset_data,
+       aes(x = sort(Date), y = Main_Percent_Cover, fill = Main_Microbe_Color, color = Main_Microbe_Color, shape = Side))+
+  geom_point()
+}
+ 
+```
+
+
+
+
+```{r}
+
+
+```
+
