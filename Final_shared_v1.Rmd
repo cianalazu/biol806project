@@ -1,0 +1,92 @@
+---
+title: "final_goodcode"
+author: "Alyssa"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(tidyverse)
+library(lubridate)
+library(cowplot)
+Plate_Count <- read_csv("finalplatecount.csv")
+
+Plate_Count$Date[79] = "7/12/22"
+```
+
+```{r custom function for making graphs, fig.height=5, fig.width=10}
+# new data frame for custom function
+make_plot_df <- Plate_Count %>% 
+  drop_na(Side) %>% 
+  filter(Side != "na") %>% #
+  mutate(real_dates = mdy(Date)) #formatting dates  
+
+# making Location into a factor 
+make_plot_df$Location <- as.factor(make_plot_df$Location)
+
+
+make_plot <- function(location = NULL) { #open custom function for making plots ("make_plot")
+  
+    if (!is.null(location)) { #if "Location" is not null, set it to that location
+      plot_df <- make_plot_df %>% 
+        filter(Location == location)
+    }
+    else {
+      plot_df <- make_plot_df
+    }
+  
+    plot_df %>% #new df accounting for location corrections
+    ggplot(aes(x=real_dates, 
+               y = Main_Percent_Cover, 
+               fill = Main_Microbe_Color, 
+               color = Main_Microbe_Color)) +
+      geom_point(size=2.5) +
+      labs(title = location, 
+           x = "Month", 
+           y = "Percent Coverage") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1, size = 7),
+            plot.title = element_text(size = 10, hjust = 0.5)) +
+      scale_color_manual(values = c("dark_yellow" = "darkgoldenrod", 
+                                    "black" = "black", 
+                                    "yellow" = "gold", 
+                                    "orange" = "orange",
+                                    "light_yellow" = "khaki1", 
+                                    "pink" = "pink",
+                                    "gray" = "gray")) +
+      scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 25)) +
+      scale_x_date(limits = c(as.Date("2022-01-01"), 
+                              as.Date("2022-12-31")), 
+                              date_labels = "%b", 
+                              date_breaks = "1 month") +
+      facet_wrap(vars(Side)) #comparing left and right sides
+} #close "make_plot"
+
+#function for taking away individual legends
+no_legend <- function(p) { 
+  return(p + theme(legend.position = "none"))
+} #close no_legend
+
+#making individual plots for locations using custom function
+plot1 <- make_plot("mill_pond") + labs(title = "Mill Pond") 
+plot2 <- make_plot("woodman_rd") + labs(title = "Woodman Rd")
+plot3 <- make_plot("durham_reservoir") + labs(title = "Durham Reservoir")
+plot4 <- make_plot("laroche_pond") + labs(title = "LaRoche Pond")
+plot5 <- make_plot("thompson_farm") + labs(title = "Thompson Farm")
+plot6 <- make_plot("upper_mill_pond") + labs(title = "Upper Mill Pond")
+
+#legend accounting for every single color
+plot_legend <- get_legend(make_plot() +
+      theme(legend.direction = "horizontal"))
+
+#taking individual plots and putting them into a grid, using custom function to take individual legends away
+make_grid_plot <- plot_grid(no_legend(plot1) , no_legend(plot2), no_legend(plot3), no_legend(plot4), no_legend(plot5), no_legend(plot6), ncol = 3)
+
+#adding an overall legend to the grid
+make_grid_plot <- plot_grid(make_grid_plot, plot_legend, ncol = 1, rel_heights = c(1, 0.15))
+
+#displaying plot
+make_grid_plot
+```
