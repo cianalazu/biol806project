@@ -1,0 +1,330 @@
+---
+title: "revised code"
+author: "Alyssa"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(tidyverse)
+library(lubridate)
+library(cowplot)
+Plate_Count <- read_csv("finalplatecount.csv")
+
+#fixing errors in data frame
+
+Plate_Count$Date[79] = "7/12/22"
+
+Plate_Count <- Plate_Count %>% 
+  mutate_all( ~ifelse(. == "Green", "green", .))
+
+Plate_Count<- Plate_Count %>% 
+  mutate_all(~ifelse(. == "light red", "light_red", .))
+
+#renaming color values since I named them poorly when recording data
+#also shortening them to fit in figures better
+
+Plate_Count<- Plate_Count %>% 
+  mutate_all(~ifelse(. == "light_yellow", "beige", .))
+
+Plate_Count<- Plate_Count %>% 
+  mutate_all(~ifelse(. == "pink", "magenta", .))
+
+Plate_Count<- Plate_Count %>% 
+  mutate_all(~ifelse(. == "light_red", "pink", .))
+
+Plate_Count<- Plate_Count %>% 
+  mutate_all(~ifelse(. == "dark_yellow", "amber", .))
+
+```
+
+```{r Anna matrix representing all colors}
+
+#generating a new dataframe
+make_plot_df <- Plate_Count %>% 
+  drop_na(Side) %>% 
+  filter(Side != "na") %>% #
+  mutate(real_dates = mdy(Date))
+
+#start of matrix: created to show represent every single color at every single sampling date (even when there is 0% coverage, this is represented in the matrix)
+
+#making a list of color names by grabbing unique values in columns 5, 7, 9, and 11
+colornames <- unique(unlist(make_plot_df[,c(5,7,9,11)])) 
+
+#creating empty vector that will have columns equal to the length of color names and rows equal to the number of rows in make_plot_df
+num_col_abund <- matrix(nrow=nrow(make_plot_df),ncol=length(colornames))
+
+#For loop going through the list of colors: For each color, check the "microbe 1" column (row by row). If the color that is being indexed is present in the row, go to the next column to report the percent coverage. If it is not present in that row, report a zero. Repeats for all "microbe color" columns (5, 7, 9, and 11).
+for(i in 1:length(colornames)) {
+  
+  num_col_abund[,i] <- as.numeric(unlist(sapply(1:nrow(make_plot_df), function(z)
+    ifelse(any(make_plot_df[z,c(5,7,9,11)]==colornames[i]),
+           make_plot_df[z,c(6,8,10,12)[which(make_plot_df[z,c(5,7,9,11)]==colornames[i])]],
+           0))))
+}
+
+#setting the column names in the matrix to be the color names
+colnames(num_col_abund) <- colornames
+
+#adjusting the matrix to remove columns that include na values
+num_col_abund2 <- num_col_abund[,-which(colornames=="na")]
+```
+
+```{r custom line graph function (grid)}
+
+#11/13: still need to fix dates... decide how we want the dates to appear (same x axis or specific x axis to each location)
+
+#this chunk takes the matrix (num_col_abund2) and puts it into a function to generate line graphs for all the locations and sites at once
+
+#converts matrix (num_col_abund_2) into a new df for plotting
+all_colors_df <- data.frame(num_col_abund2) %>% 
+  mutate("Location" = make_plot_df$Location,
+         "Date" = make_plot_df$real_dates,
+         "Side" = make_plot_df$Side) %>% 
+  pivot_longer(cols = c(1:12)) 
+
+#changing the data types for plotting purposes
+all_colors_df$Location <- as.factor(all_colors_df$Location)
+all_colors_df$Date <- as.Date(all_colors_df$Date, format = "%Y-%m-%d")
+
+#open plot_all function: if else statement used to make overall legend in final figure
+plot_all <- function(location = NULL) { 
+    if (!is.null(location)) { 
+      all_colors_plot <- all_colors_df %>% 
+        filter(Location == location)
+    }
+    else {
+      all_colors_plot <- all_colors_df
+    }
+  
+   #new data frame made from the matrix that includes all colors necessary for analysis
+    all_colors_plot %>% 
+    ggplot(aes(x=Date, 
+               y=value, 
+               color=name, 
+               linetype = Side)) +
+    geom_line(size=.5) +
+    labs(color = "Microbe Color",
+         x = "Month",
+         y = "Percent Coverage") +
+    scale_color_manual(values = c("amber" = "goldenrod", 
+                                  "black" = "black", 
+                                  "yellow" = "yellow", 
+                                  "orange" = "darkorange1",
+                                  "beige" = "wheat2", 
+                                  "magenta" = "magenta",
+                                  "gray" = "gray40",
+                                  "green" = "green3",
+                                  "brown" = "saddlebrown",
+                                  "pink" = "pink",
+                                  "red" = "red",
+                                  "purple" = "purple")) +
+      scale_y_continuous(limits = c(0, 100), 
+                         breaks = seq(0, 100, by = 25)) +
+    scale_x_date(#limits = c(min(all_colors_df$Date), max(all_colors_df$Date)),
+                date_labels = "%b",
+                date_breaks = "1 month",
+                date_minor_breaks = "1 week") +
+    #expand_limits(x = c(as.Date("2022-05-01"), as.Date("2022-12-31"))) +
+    theme_classic() +
+      theme(axis.text.x = element_text(angle = 90, 
+                                       size = 6),
+            axis.text.y = element_text(size = 6),
+            plot.title = element_text(size = 8, 
+                                      hjust = 0.5),
+            axis.title = element_text(size = 8),
+            legend.title = element_text(size=8))
+
+}
+#close plot_all
+
+#open no_function: function for taking away individual legends
+no_legend <- function(p) { 
+  return(p + theme(legend.position = "none"))
+} #close no_legend
+
+
+#generating individual plots before combining in grid
+plotA <- plot_all("mill_pond") + labs(title = "Mill Pond") 
+plotB <- plot_all("woodman_rd") + labs(title = "Woodman Rd")
+plotC <- plot_all("durham_reservoir") + labs(title = "Durham Reservoir")
+plotD <- plot_all("laroche_pond") + labs(title = "LaRoche Pond")
+plotE <- plot_all("thompson_farm") + labs(title = "Thompson Farm")
+plotF <- plot_all("upper_mill_pond") + labs(title = "Upper Mill Pond")
+
+#generating "color inclusive" legend for "Side"
+plot_legend_side <- get_legend(
+  plot_all() +
+    theme(legend.direction = "horizontal",
+          legend.text = element_text(size = 7)) +
+    guides(linetype = F))
+
+#generating "color inclusive" legend for "color"
+plot_legend_color <- get_legend(
+  plot_all() +
+    theme(legend.direction = "horizontal",
+          legend.text = element_text(size = 7)) +
+    guides(color = F))
+
+#removing individual legends ("no_legend" custom function) and putting all the plots into a grid ("plot_grid" from cowplot) without a legend
+grid_no_legend <- plot_grid(no_legend(plotA) , no_legend(plotB), no_legend(plotC), no_legend(plotD), no_legend(plotE), no_legend(plotF), ncol = 3)
+
+#legend object that combines side and color data with size
+grid_plot_legends <- plot_grid(plot_legend_side, plot_legend_color, rel_widths = c(0.60, 0.40))
+
+#adding the overall legend to the grid using "make_grid_plot" (plots put into grid), and "plot_legend" (legend accounting for all locations)
+line_grid_plot <- plot_grid(grid_no_legend, grid_plot_legends, ncol = 1, rel_heights = c(1, 0.25))
+
+#displaying plot
+line_grid_plot
+```
+```{r total microbe colors counted by location}
+
+#creating a DF that includes the total microbe colors counted in each location
+total_loc_microbe_count <- all_colors_df %>% 
+  filter(value >0) %>% 
+  group_by(Location, name) %>% 
+  summarise(value = n_distinct(Location))
+
+#summing the total microbe colors counted in each location 
+location_microbe <- total_loc_microbe_count %>% 
+  group_by(Location) %>% 
+  summarise(total_colors = sum(value))
+
+#piping total microbe colors into bar graph
+location_microbe %>% 
+  ggplot(aes(x = Location, 
+             y = total_colors, 
+             fill = Location)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Location", 
+       y = "Microbe Colors Observed", 
+       title = "Number of Microbe Colors Observed at Each Location") +
+  scale_x_discrete(labels = c("durham_reservoir" = "Durham Reservoir", 
+                              "laroche_pond" = "LaRoche Pond", 
+                              "mill_pond" = "Mill Pond",
+                              "thompson_farm" = "Thompson Farm",
+                              "upper_mill_pond" = "Upper Mill Pond",
+                              "woodman_rd" = "Woodman Rd")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(size = 8),
+        plot.title = element_text(hjust = 1))
+```
+
+```{r sample count table}
+
+#maybe can use as a figure to show the variance in sample sizes
+library(knitr)
+library(kableExtra)
+sample_numbers <- make_plot_df %>% 
+  group_by(Location) %>% 
+  summarise(Samples = n())
+
+sample_table <- kable(sample_numbers, format = "html", caption = "Sample Table")
+
+print(sample_table)
+```
+```{r stacked bar graphs to show proportion and avg comp per plate}
+
+#df with no zeroes
+all_colors_df_2 <- all_colors_df %>% 
+  filter(value != 0)
+
+#creating stacked bar graph showing the proportion (prop_fig) of microbe color incidences for each location 
+prop_fig <- all_colors_df_2 %>% 
+  ggplot(aes(x = Location, fill = name)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = c(
+    amber = "goldenrod",
+    beige = "beige",
+    black = "black",
+    orange = "darkorange1",
+    magenta = "magenta",
+    yellow = "yellow",
+    gray = "gray40",
+    green = "green",
+    brown = "saddlebrown",
+    pink = "pink",
+    red = "red",
+    purple = "purple")) +
+  labs(
+    title = "Microbe Color Proportion", 
+    y = "Proportion of Color Incidences", 
+    x = "Location",
+    fill = "Microbe Color") +
+  scale_x_discrete(labels = c("durham_reservoir" = "Durham Reservoir", 
+                                "laroche_pond" = "LaRoche Pond", 
+                                "mill_pond" = "Mill Pond",
+                               "thompson_farm" = "Thompson Farm",
+                               "upper_mill_pond" = "Upper Mill Pond",
+                               "woodman_rd" = "Woodman Rd")) +
+  theme_classic() +
+   theme(legend.position = "right",
+         plot.title = element_text(hjust = 0.6)) +
+  theme(axis.text.x = element_text(size = 8))
+
+#displaying proportion stacked bar graph
+prop_fig
+
+#creating a new DF that includes the average percentage of each microbe color for each sampling date
+avg_percent_colors_2 <- data.frame(num_col_abund2) %>% 
+mutate("Location" = make_plot_df$Location,
+       "Date" = make_plot_df$real_dates,
+       "Side" = make_plot_df$Side) %>% 
+group_by(Location) %>% 
+summarise(amber = mean(amber), 
+          beige = mean(beige),
+          black = mean(black),
+          orange = mean(orange),
+          magenta = mean(magenta),
+          yellow = mean(yellow),
+          gray = mean(gray),
+          green = mean(green),
+          brown = mean(brown),
+          pink = mean(pink),
+          red = mean(red),
+          purple = mean(purple)) %>% 
+  pivot_longer(cols = c(2:13))
+
+#creating a stacked bar graph showing the average microbe plate composition for each location: if you were to squish all plates from one location into one, this is the "average" plate you would see
+avg_plate_fig <- avg_percent_colors_2 %>% 
+  ggplot(aes(x = Location, y = value, fill = name)) +
+    geom_bar(stat = "identity", position = "stack") +
+    scale_x_discrete(labels = c("durham_reservoir" = "Durham Reservoir", 
+                                "laroche_pond" = "LaRoche Pond", 
+                                "mill_pond" = "Mill Pond",
+                               "thompson_farm" = "Thompson Farm",
+                               "upper_mill_pond" = "Upper Mill Pond",
+                               "woodman_rd" = "Woodman Rd")) +
+    labs(title = "Average Plate Composition", 
+         y = "Percent Coverage", 
+         x = "Location",
+         fill = "Microbe Color") +
+    scale_fill_manual(values = c(amber = "goldenrod",
+                                beige = "beige",
+                                black = "black",
+                                orange = "darkorange1",
+                                magenta = "magenta",
+                                yellow = "yellow",
+                                gray = "gray40",
+                                green = "green",
+                                brown = "saddlebrown",
+                                pink = "pink",
+                                red = "red",
+                                purple = "purple")) +
+  theme_classic() +
+  theme(legend.position = "right",
+         plot.title = element_text(hjust = 0.6)) +      
+  scale_y_continuous(limits = c(0, 100),
+                   breaks = seq(0, 100, by = 25)) +
+  theme(axis.text.x = element_text(size = 8))
+
+#displaying average plate figure
+avg_plate_fig
+
+```
+
+
